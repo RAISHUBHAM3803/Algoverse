@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. Express Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: algoverse_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGO_URI=mongodb+srv://shubhamrai3803:Shubhamrai1@codingadda.eiztujn.mongodb.net/Leetcode
+      - JWT_SECRET=5c32a99e3bdd9e51dcc02974e0deb563486e61af96509f66bde56d9fb6ed983a
+      - JWT_EXPIRE=15m
+      - JWT_REFRESH_SECRET=7d8f2c1a4b9e6f3d5a2c8b0e1f4d7a9c2b5e8f1d4a7c0b3e6f9d2a5c8b1e4f7
+      - JWT_REFRESH_EXPIRE=7d
+      - CLIENT_URL=http://localhost:3000
+      - PISTON_URL=http://piston:2000
+      - PISTON_API=http://piston:2000/api/v2/execute
+      - PISTON_MOCK=false
+    depends_on:
+      - piston
+    networks:
+      - algoverse-network
+
+  # 2. Piston Code Execution Sandbox
+  piston:
+    image: engineerman/piston:latest
+    container_name: algoverse_piston
+    restart: always
+    volumes:
+      - piston-data:/piston/packages
+    # Exposing internal port 2000 to the backend within the docker network
+    networks:
+      - algoverse-network
+
+networks:
+  algoverse-network:
+    driver: bridge
+
+volumes:
+  piston-data:

@@ -1,0 +1,57 @@
+{
+  "name": "algoverse-backend",
+  "version": "1.0.0",
+  "description": "AI Powered Coding Interview Platform - Backend Foundation",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "start:prod": "pm2-runtime start ecosystem.config.js --env production",
+    "seed": "node scripts/seedProblems.js",
+    "seed:clear": "node scripts/seedProblems.js --clear",
+    "test": "jest --runInBand --forceExit",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand --forceExit",
+    "test:security": "jest tests/security --runInBand"
+  },
+  "keywords": [
+    "coding",
+    "interview",
+    "platform",
+    "ai"
+  ],
+  "author": "AlgoVerse Team",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^2.8.0",
+    "axios": "^1.16.1",
+    "bcryptjs": "^3.0.3",
+    "bullmq": "^5.78.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.3.2",
+    "helmet": "^7.1.0",
+    "hpp": "^0.2.3",
+    "ioredis": "^5.11.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.0.3",
+    "morgan": "^1.10.0",
+    "winston": "^3.11.0",
+    "xss-clean": "^0.1.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^7.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
