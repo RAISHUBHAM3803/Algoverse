@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://algoverse-n9w4.onrender.com/api/$1"
+      "destination": "https://algoverse-ouie.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
