@@ -34,7 +34,14 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Handle 401 Unauthorized (Token Expired)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // IMPORTANT: Skip refresh for auth routes — a 401 from /login or /register
+    // means wrong credentials, NOT an expired token. Without this guard, the
+    // user would see "No refresh token" instead of "Invalid email or password".
+    const isAuthRoute = originalRequest.url?.includes("/auth/login") ||
+                        originalRequest.url?.includes("/auth/register") ||
+                        originalRequest.url?.includes("/auth/refresh");
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true;
 
       try {
