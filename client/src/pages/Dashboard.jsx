@@ -85,7 +85,8 @@ const Dashboard = () => {
         api.get("/submissions/my?limit=5"),
         api.get("/dashboard/activity"),
         api.get("/dashboard/difficulty"),
-        api.get("/dashboard/languages")
+        api.get("/dashboard/languages"),
+        new Promise(resolve => setTimeout(resolve, 600)) // Show Shimmer
       ]);
 
       if (!isMounted) return;
