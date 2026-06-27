@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, memo, useCallback } from "react";
+import DOMPurify from "dompurify";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProblemById, clearSelectedProblem } from "../features/problems/problemSlice";
@@ -113,7 +114,7 @@ const DescriptionTab = memo(({ problem }) => (
         {problem.isRealDataFetched ? (
           <div 
             className="prose prose-invert max-w-none text-text-primary prose-p:leading-[1.8] prose-p:text-[15px] prose-pre:bg-[#161b22] prose-pre:border prose-pre:border-white/8 prose-pre:rounded-xl prose-pre:p-4 prose-a:text-primary-400 hover:prose-a:text-primary-300 prose-code:text-primary-200 prose-code:bg-primary-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
-            dangerouslySetInnerHTML={{ __html: problem.statement }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(problem.statement) }}
           />
         ) : (
           <div className="whitespace-pre-wrap leading-[1.8] text-[15px] text-text-primary">
