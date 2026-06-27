@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken, setToken, clearToken } from "../utils/tokenStorage";
+import { getToken, setToken, clearToken, getRefreshToken } from "../utils/tokenStorage";
 
 const getApiUrl = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
@@ -41,7 +41,7 @@ api.interceptors.response.use(
         // Attempt to refresh token using the same dynamic base URL
         const res = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
-          {},
+          { refreshToken: getRefreshToken() },
           { withCredentials: true }
         );
 

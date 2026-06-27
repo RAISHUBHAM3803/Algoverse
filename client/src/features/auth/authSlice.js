@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginAPI, registerAPI, logoutAPI, loadUserAPI, updateProfileAPI } from "./authAPI";
-import { setToken, clearToken, getToken } from "../../utils/tokenStorage";
+import { setToken, clearToken, getToken, setRefreshToken } from "../../utils/tokenStorage";
 import toast from "react-hot-toast";
 
 const initialState = {
@@ -117,6 +117,7 @@ const authSlice = createSlice({
         state.user = payload?.user ?? null;
         state.token = payload?.accessToken ?? null;
         setToken(payload?.accessToken);
+        setRefreshToken(payload?.refreshToken);
         toast.success("Login successful!");
       })
       .addCase(login.rejected, (state, action) => {
@@ -138,6 +139,7 @@ const authSlice = createSlice({
         state.user = payload?.user ?? null;
         state.token = payload?.accessToken ?? null;
         setToken(payload?.accessToken);
+        setRefreshToken(payload?.refreshToken);
         toast.success("Registration successful!");
       })
       .addCase(register.rejected, (state, action) => {

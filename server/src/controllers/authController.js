@@ -66,7 +66,8 @@ const sendAuthResponse = (res, statusCode, message, user, accessToken, refreshTo
   return res.status(statusCode).json({
     success: true,
     message,
-    accessToken, // also returned in body for clients that prefer bearer-token flow
+    accessToken,
+    refreshToken,
     user: {
       id:      user._id,
       name:    user.name,
