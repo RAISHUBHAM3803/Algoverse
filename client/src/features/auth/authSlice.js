@@ -15,6 +15,9 @@ export const login = createAsyncThunk(
   "auth/login",
   async (credentials, { rejectWithValue, dispatch }) => {
     try {
+      // Always wipe any stale tokens before logging in so the
+      // correct user's dashboard data is always fetched fresh.
+      clearToken();
       const data = await loginAPI(credentials);
       // After login, fetch full user data (includes currentStreak from auth/me)
       setTimeout(() => dispatch(loadUser()), 0);
