@@ -35,7 +35,7 @@ const getCookieOptions = (expireString) => {
   return {
     httpOnly: true,
     secure:   isProd,
-    sameSite: isProd ? "None" : "Lax",
+    sameSite: "Lax",
     maxAge,
     expires:  new Date(Date.now() + maxAge),
   };
@@ -52,7 +52,7 @@ const getClearCookieOptions = () => {
   return {
     httpOnly: true,
     secure:   isProd,
-    sameSite: isProd ? "None" : "Lax",
+    sameSite: "Lax",
   };
 };
 
