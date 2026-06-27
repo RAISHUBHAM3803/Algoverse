@@ -195,12 +195,10 @@ void printBool(bool b) { cout << (b ? "true" : "false") << endl; }
     resultPrint = `    printBool(result);`;
   } else if (retType === 'string') {
     resultPrint = `    cout << result << endl;`;
-  } else if (retType === 'integer[]' || retType === 'long[]' || retType === 'double[]') {
-    resultPrint = `    printVector(result);`;
-  } else if (retType === 'string[]') {
-    resultPrint = `    printVector(result);`;
-  } else if (retType === 'integer[][]') {
+  } else if (retType.includes('[][]') || retType.startsWith('list<list<')) {
     resultPrint = `    print2DVector(result);`;
+  } else if (retType.includes('[]') || retType.startsWith('list<')) {
+    resultPrint = `    printVector(result);`;
   } else if (retType === 'void') {
     resultPrint = `    // void return`;
   } else {
