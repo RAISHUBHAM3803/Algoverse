@@ -12,6 +12,7 @@ const Submission = require("../models/Submission");
 const mongoose = require("mongoose");
 const { calculateStreaks } = require("../utils/analyticsHelper");
 const { VERDICTS } = require("../constants/enums");
+const redis = require("../config/redis");
 
 // ============================================
 // PRIVATE HELPERS
@@ -100,6 +101,15 @@ const register = asyncHandler(async (req, res) => {
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const { user, accessToken, refreshToken } = await authService.login({ email, password });
+  // Bust any stale Redis cache for this user so the dashboard always loads fresh data on login
+  const userId = user._id.toString();
+  await Promise.allSettled([
+    redis.del(`dashboard:summary:${userId}`),
+    redis.del(`dashboard:difficulty:${userId}`),
+    redis.del(`dashboard:languages:${userId}`),
+    redis.del(`dashboard:submissions:${userId}`),
+    redis.del(`dashboard:activity:${userId}`),
+  ]);
   sendAuthResponse(res, 200, "Login successful", user, accessToken, refreshToken);
 });
 
