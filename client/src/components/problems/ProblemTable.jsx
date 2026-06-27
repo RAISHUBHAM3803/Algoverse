@@ -9,6 +9,7 @@ import {
 } from "../../features/problems/problemSelectors";
 import { fetchProblems, setTag } from "../../features/problems/problemSlice";
 import { Lock, FileWarning, RefreshCw, CheckCircle2 } from "lucide-react";
+import { ShimmerRow } from "../common/Shimmer";
 
 const PAGE_SIZE = 20; // must match LIMIT in Problems.jsx
 // ─── Difficulty helpers ────────────────────────────────────────────────────────
@@ -50,20 +51,6 @@ const tagColorClass = (tag) => {
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-const SkeletonRow = () => (
-  <div className="flex items-center gap-4 px-6 py-4 border-b border-[#2a2a2a] animate-pulse bg-[#1a1a1a]">
-    <div className="w-5 h-4 bg-[#2a2a2a] rounded flex-shrink-0" />
-    <div className="flex-1 h-4 bg-[#2a2a2a] rounded" />
-    <div className="w-14 h-4 bg-[#2a2a2a] rounded hidden md:block" />
-    <div className="w-16 h-5 bg-[#2a2a2a] rounded-full hidden md:block" />
-    <div className="hidden md:flex gap-1.5">
-      <div className="w-16 h-5 bg-[#2a2a2a] rounded-md" />
-      <div className="w-14 h-5 bg-[#2a2a2a] rounded-md" />
-    </div>
-    <div className="w-8 h-4 bg-[#2a2a2a] rounded hidden lg:block" />
-  </div>
-);
 
 const TableHeader = () => (
   <div className="hidden md:grid grid-cols-[minmax(240px,1fr)_7rem_6rem_minmax(120px,180px)_4rem] gap-4 px-6 py-3 border-b border-[#2a2a2a] bg-[#222222]">
@@ -146,7 +133,7 @@ const ProblemTable = ({ hasFilters }) => {
     return (
       <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden shadow-sm">
         <TableHeader />
-        {Array.from({ length: 10 }).map((_, i) => <SkeletonRow key={i} />)}
+        {Array.from({ length: 10 }).map((_, i) => <ShimmerRow key={i} />)}
       </div>
     );
   }

@@ -8,19 +8,12 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { ShimmerCard } from "../components/common/Shimmer";
 
 // ─── Stat Card & Skeleton ──────────────────────────────────────────────────
 const StatCard = ({ icon: Icon, label, value, colorClass, delay, loading }) => {
   if (loading) {
-    return (
-      <div className="bg-surface/50 backdrop-blur-md border border-white/5 rounded-2xl p-6 flex items-center gap-5 shadow-lg animate-pulse">
-        <div className="w-14 h-14 rounded-2xl bg-white/5 flex-shrink-0"></div>
-        <div className="flex-1">
-          <div className="h-3 w-20 bg-white/10 rounded mb-2.5"></div>
-          <div className="h-8 w-16 bg-white/10 rounded"></div>
-        </div>
-      </div>
-    );
+    return <ShimmerCard />;
   }
 
   return (
