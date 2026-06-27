@@ -86,35 +86,47 @@ const Dashboard = () => {
   const fetchStats = useCallback(async () => {
     let isMounted = true;
     try {
-      const [summaryRes, submissionsRes, heatmapRes, difficultyRes, langRes] = await Promise.all([
+      // Use allSettled so a single failing endpoint doesn't wipe the whole dashboard
+      const [summaryRes, submissionsRes, heatmapRes, difficultyRes, langRes] = await Promise.allSettled([
         api.get("/dashboard/summary"),
         api.get("/submissions/my?limit=5"),
         api.get("/dashboard/activity"),
         api.get("/dashboard/difficulty"),
         api.get("/dashboard/languages")
       ]);
-      
+
       if (!isMounted) return;
 
-      const data = summaryRes.data.data;
-      const subsData = submissionsRes.data.data || [];
-      const activityData = heatmapRes.data.data || [];
-      const diffData = difficultyRes.data.data || [];
-      const langData = langRes.data.data || [];
-      
-      let rank = "Bronze";
-      if (data.totalSolved === 0) rank = "Unranked";
-      else if (data.totalSolved >= 150) rank = "Platinum";
-      else if (data.totalSolved >= 50) rank = "Gold";
-      else if (data.totalSolved >= 10) rank = "Silver";
+      // Helper to safely extract data from settled promises
+      const getValue = (result, fallback = null) =>
+        result.status === "fulfilled" ? result.value.data : fallback;
 
-      setStats({
-        solved: data.totalSolved,
-        total: data.totalProblems || 0,
-        streak: data.currentStreak || 0,
-        rank: rank,
-        accuracy: data.acceptanceRate || 0
-      });
+      if (summaryRes.status === "rejected") {
+        console.error("[Dashboard] summary API failed:", summaryRes.reason?.response?.data || summaryRes.reason?.message);
+      }
+
+      const summaryData  = getValue(summaryRes);
+      const subsData     = getValue(submissionsRes)?.data || [];
+      const activityData = getValue(heatmapRes)?.data    || [];
+      const diffData     = getValue(difficultyRes)?.data || [];
+      const langData     = getValue(langRes)?.data       || [];
+
+      if (summaryData?.data) {
+        const data = summaryData.data;
+        let rank = "Bronze";
+        if (data.totalSolved === 0) rank = "Unranked";
+        else if (data.totalSolved >= 150) rank = "Platinum";
+        else if (data.totalSolved >= 50)  rank = "Gold";
+        else if (data.totalSolved >= 10)  rank = "Silver";
+
+        setStats({
+          solved:   data.totalSolved,
+          total:    data.totalProblems || 0,
+          streak:   data.currentStreak || 0,
+          rank:     rank,
+          accuracy: data.acceptanceRate || 0
+        });
+      }
 
       setRecentSubmissions(subsData);
 
@@ -122,22 +134,23 @@ const Dashboard = () => {
       activityData.forEach(item => { activityMap[item.date] = item.count; });
       setHeatmapData(activityMap);
 
-      const easyDiff = diffData.find(d => d.difficulty === "Easy") || { solved: 0, total: 1 };
+      const easyDiff   = diffData.find(d => d.difficulty === "Easy")   || { solved: 0, total: 1 };
       const mediumDiff = diffData.find(d => d.difficulty === "Medium") || { solved: 0, total: 1 };
-      const hardDiff = diffData.find(d => d.difficulty === "Hard") || { solved: 0, total: 1 };
+      const hardDiff   = diffData.find(d => d.difficulty === "Hard")   || { solved: 0, total: 1 };
 
       setDifficultyData({
-        Easy: { solved: easyDiff.solved, total: easyDiff.total },
+        Easy:   { solved: easyDiff.solved,   total: easyDiff.total },
         Medium: { solved: mediumDiff.solved, total: mediumDiff.total },
-        Hard: { solved: hardDiff.solved, total: hardDiff.total }
+        Hard:   { solved: hardDiff.solved,   total: hardDiff.total }
       });
 
       setLanguageData(langData);
     } catch (error) {
-      console.error("Failed to fetch dashboard stats", error);
+      console.error("[Dashboard] Critical fetch error:", error);
     } finally {
       if (isMounted) setLoading(false);
     }
+    return () => { isMounted = false; };
   }, []);
 
   // Initial load
