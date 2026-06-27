@@ -1,6 +1,8 @@
 /**
  * Dashboard & Analytics Service
  * Provides performant aggregation pipelines for user statistics and submissions.
+ * All Redis calls are wrapped in try/catch so the dashboard works even when
+ * Redis is unavailable (e.g. free-tier request limit exceeded).
  */
 
 const mongoose = require("mongoose");
@@ -12,6 +14,26 @@ const AppError = require("../utils/AppError");
 const { calculateStreaks } = require("../utils/analyticsHelper");
 const { VERDICTS } = require("../constants/enums");
 
+// ─── Safe Redis Helpers ───────────────────────────────────────────────────────
+// If Upstash free-tier limit is hit or Redis is down, these fall back to null
+// instead of throwing, so every endpoint gracefully falls back to MongoDB.
+
+const safeRedisGet = async (key) => {
+  try {
+    return await redis.get(key);
+  } catch (err) {
+    return null;
+  }
+};
+
+const safeRedisSet = async (key, value, ...args) => {
+  try {
+    await redis.set(key, value, ...args);
+  } catch (err) {
+    // Silently ignore — cache miss on next call is acceptable
+  }
+};
+
 class DashboardService {
   /**
    * Get overall dashboard summary
@@ -21,7 +43,7 @@ class DashboardService {
   async getSummary(userId) {
     // Cache per-user summary for 60 seconds to avoid heavy aggregations on every page load
     const cacheKey = `dashboard:summary:${userId}`;
-    const cached = await redis.get(cacheKey);
+    const cached = await safeRedisGet(cacheKey);
     if (cached) return JSON.parse(cached);
 
     const userObjectId = new mongoose.Types.ObjectId(userId);
@@ -67,7 +89,7 @@ class DashboardService {
       longestStreak,
     };
 
-    await redis.set(cacheKey, JSON.stringify(result), "EX", 60); // Cache 60 seconds
+    await safeRedisSet(cacheKey, JSON.stringify(result), "EX", 60); // Cache 60 seconds
     return result;
   }
 
@@ -79,7 +101,7 @@ class DashboardService {
   async getDifficultyAnalytics(userId) {
     // Cache per-user difficulty breakdown for 5 minutes
     const cacheKey = `dashboard:difficulty:${userId}`;
-    const cached = await redis.get(cacheKey);
+    const cached = await safeRedisGet(cacheKey);
     if (cached) return JSON.parse(cached);
 
     const user = await User.findById(userId).select("stats").lean();
@@ -98,7 +120,7 @@ class DashboardService {
       { difficulty: "Hard",   solved: stats.hardSolved   || 0, total: countMap["Hard"]   || 0 },
     ];
 
-    await redis.set(cacheKey, JSON.stringify(result), "EX", 300); // Cache 5 minutes
+    await safeRedisSet(cacheKey, JSON.stringify(result), "EX", 300); // Cache 5 minutes
     return result;
   }
 
@@ -177,7 +199,7 @@ class DashboardService {
   async getActivityHeatmap(userId) {
     const cacheKey = `dashboard:heatmap:${userId}`;
     
-    const cachedData = await redis.get(cacheKey);
+    const cachedData = await safeRedisGet(cacheKey);
     if (cachedData) {
       return JSON.parse(cachedData);
     }
@@ -198,7 +220,7 @@ class DashboardService {
       { $project: { _id: 0, date: "$_id", count: 1 } },
     ]);
     
-    await redis.set(cacheKey, JSON.stringify(heatmap), "EX", 15 * 60); // Cache for 15 minutes
+    await safeRedisSet(cacheKey, JSON.stringify(heatmap), "EX", 15 * 60); // Cache for 15 minutes
     
     return heatmap;
   }
