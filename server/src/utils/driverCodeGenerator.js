@@ -144,6 +144,76 @@ void print2DVector(const vector<vector<int>>& v) {
     }
     cout << "]" << endl;
 }
+// ── Custom Data Structures ──
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
+    ListNode(int x) : val(x), next(nullptr) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
+};
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+};
+ListNode* buildList(const vector<int>& v) {
+    ListNode dummy(0);
+    ListNode* curr = &dummy;
+    for (int x : v) { curr->next = new ListNode(x); curr = curr->next; }
+    return dummy.next;
+}
+void printList(ListNode* head) {
+    cout << "[";
+    while (head) { cout << head->val; if (head->next) cout << ","; head = head->next; }
+    cout << "]" << endl;
+}
+vector<string> parseTreeArray(const string& s) {
+    vector<string> v;
+    string t = s;
+    t.erase(remove(t.begin(), t.end(), '['), t.end());
+    t.erase(remove(t.begin(), t.end(), ']'), t.end());
+    stringstream ss(t);
+    string item;
+    while (getline(ss, item, ',')) {
+        item.erase(remove_if(item.begin(), item.end(), ::isspace), item.end());
+        if (!item.empty()) v.push_back(item);
+    }
+    return v;
+}
+TreeNode* buildTree(const vector<string>& v) {
+    if (v.empty() || v[0] == "null") return nullptr;
+    TreeNode* root = new TreeNode(stoi(v[0]));
+    queue<TreeNode*> q;
+    q.push(root);
+    int i = 1;
+    while (!q.empty() && i < v.size()) {
+        TreeNode* curr = q.front(); q.pop();
+        if (v[i] != "null") { curr->left = new TreeNode(stoi(v[i])); q.push(curr->left); }
+        i++;
+        if (i < v.size() && v[i] != "null") { curr->right = new TreeNode(stoi(v[i])); q.push(curr->right); }
+        i++;
+    }
+    return root;
+}
+void printTree(TreeNode* root) {
+    if (!root) { cout << "[]" << endl; return; }
+    vector<string> res;
+    queue<TreeNode*> q;
+    q.push(root);
+    while (!q.empty()) {
+        TreeNode* curr = q.front(); q.pop();
+        if (curr) { res.push_back(to_string(curr->val)); q.push(curr->left); q.push(curr->right); }
+        else { res.push_back("null"); }
+    }
+    while (!res.empty() && res.back() == "null") res.pop_back();
+    cout << "[";
+    for (int i = 0; i < res.size(); i++) { if (i) cout << ","; cout << res[i]; }
+    cout << "]" << endl;
+}
 void printBool(bool b) { cout << (b ? "true" : "false") << endl; }
 `;
 
@@ -173,6 +243,10 @@ void printBool(bool b) { cout << (b ? "true" : "false") << endl; }
       lines.push(`    vector<string> ${varName} = parseStringArray(raw${i});`);
     } else if (type === 'integer[][]') {
       lines.push(`    vector<vector<int>> ${varName} = parseInt2DArray(raw${i});`);
+    } else if (type === 'listnode') {
+      lines.push(`    ListNode* ${varName} = buildList(parseIntArray(raw${i}));`);
+    } else if (type === 'treenode') {
+      lines.push(`    TreeNode* ${varName} = buildTree(parseTreeArray(raw${i}));`);
     } else {
       // Fallback: treat as string
       lines.push(`    string ${varName} = raw${i};`);
@@ -199,6 +273,10 @@ void printBool(bool b) { cout << (b ? "true" : "false") << endl; }
     resultPrint = `    print2DVector(result);`;
   } else if (retType.includes('[]') || retType.startsWith('list<')) {
     resultPrint = `    printVector(result);`;
+  } else if (retType === 'listnode') {
+    resultPrint = `    printList(result);`;
+  } else if (retType === 'treenode') {
+    resultPrint = `    printTree(result);`;
   } else if (retType === 'void') {
     resultPrint = `    // void return`;
   } else {
@@ -260,6 +338,12 @@ function generatePythonDriver(meta) {
     } else if (type === 'string[][]') {
       lines.push(`    import json`);
       lines.push(`    ${varName} = json.loads(raw${i})`);
+    } else if (type === 'listnode') {
+      lines.push(`    import json`);
+      lines.push(`    ${varName} = build_list(json.loads(raw${i}))`);
+    } else if (type === 'treenode') {
+      lines.push(`    import json`);
+      lines.push(`    ${varName} = build_tree(json.loads(raw${i}))`);
     } else {
       lines.push(`    ${varName} = raw${i}`);
     }
@@ -274,11 +358,82 @@ function generatePythonDriver(meta) {
     resultPrint = `    print(str(result).lower())`;
   } else if (retType.endsWith('[]') || retType.endsWith('[][]')) {
     resultPrint = `    print(result)`;
+  } else if (retType === 'listnode') {
+    resultPrint = `    print_list(result)`;
+  } else if (retType === 'treenode') {
+    resultPrint = `    print_tree(result)`;
   } else {
     resultPrint = `    print(result)`;
   }
 
-  return `{{USER_CODE}}
+  return `
+import json
+from typing import List, Optional
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def build_list(arr):
+    if not arr: return None
+    head = ListNode(arr[0])
+    curr = head
+    for val in arr[1:]:
+        curr.next = ListNode(val)
+        curr = curr.next
+    return head
+
+def print_list(head):
+    res = []
+    while head:
+        res.append(head.val)
+        head = head.next
+    # print strictly json array format for stdout matching
+    print(json.dumps(res))
+
+def build_tree(arr):
+    if not arr or arr[0] is None: return None
+    root = TreeNode(arr[0])
+    q = [root]
+    i = 1
+    while q and i < len(arr):
+        curr = q.pop(0)
+        if i < len(arr) and arr[i] is not None:
+            curr.left = TreeNode(arr[i])
+            q.append(curr.left)
+        i += 1
+        if i < len(arr) and arr[i] is not None:
+            curr.right = TreeNode(arr[i])
+            q.append(curr.right)
+        i += 1
+    return root
+
+def print_tree(root):
+    if not root:
+        print("[]")
+        return
+    res = []
+    q = [root]
+    while q:
+        curr = q.pop(0)
+        if curr:
+            res.append(curr.val)
+            q.append(curr.left)
+            q.append(curr.right)
+        else:
+            res.append(None)
+    while res and res[-1] is None:
+        res.pop()
+    print(json.dumps(res))
+
+{{USER_CODE}}
 
 if __name__ == '__main__':
     import sys
@@ -317,6 +472,10 @@ function generateJavaScriptDriver(meta) {
       lines.push(`    const ${varName} = JSON.parse(raw${i});`);
     } else if (type === 'integer[][]') {
       lines.push(`    const ${varName} = JSON.parse(raw${i});`);
+    } else if (type === 'listnode') {
+      lines.push(`    const ${varName} = buildList(JSON.parse(raw${i}));`);
+    } else if (type === 'treenode') {
+      lines.push(`    const ${varName} = buildTree(JSON.parse(raw${i}));`);
     } else {
       lines.push(`    const ${varName} = JSON.parse(raw${i});`);
     }
@@ -331,13 +490,68 @@ function generateJavaScriptDriver(meta) {
     resultPrint = `    console.log(result.toString());`;
   } else if (retType.endsWith('[]') || retType.endsWith('[][]')) {
     resultPrint = `    console.log(JSON.stringify(result));`;
+  } else if (retType === 'listnode') {
+    resultPrint = `    printList(result);`;
+  } else if (retType === 'treenode') {
+    resultPrint = `    printTree(result);`;
   } else {
     resultPrint = `    console.log(result);`;
   }
 
   return `{{USER_CODE}}
 
-const lines = require('fs').readFileSync(0,'utf8').split('\\n');
+function ListNode(val, next) {
+    this.val = (val===undefined ? 0 : val)
+    this.next = (next===undefined ? null : next)
+}
+function TreeNode(val, left, right) {
+    this.val = (val===undefined ? 0 : val)
+    this.left = (left===undefined ? null : left)
+    this.right = (right===undefined ? null : right)
+}
+function buildList(arr) {
+    if (!arr || !arr.length) return null;
+    let head = new ListNode(arr[0]);
+    let curr = head;
+    for (let i = 1; i < arr.length; i++) {
+        curr.next = new ListNode(arr[i]);
+        curr = curr.next;
+    }
+    return head;
+}
+function printList(head) {
+    let res = [];
+    while (head) { res.push(head.val); head = head.next; }
+    console.log(JSON.stringify(res));
+}
+function buildTree(arr) {
+    if (!arr || !arr.length || arr[0] === null) return null;
+    let root = new TreeNode(arr[0]);
+    let q = [root];
+    let i = 1;
+    while (q.length > 0 && i < arr.length) {
+        let curr = q.shift();
+        if (i < arr.length && arr[i] !== null) { curr.left = new TreeNode(arr[i]); q.push(curr.left); }
+        i++;
+        if (i < arr.length && arr[i] !== null) { curr.right = new TreeNode(arr[i]); q.push(curr.right); }
+        i++;
+    }
+    return root;
+}
+function printTree(root) {
+    if (!root) { console.log("[]"); return; }
+    let res = [];
+    let q = [root];
+    while (q.length > 0) {
+        let curr = q.shift();
+        if (curr) { res.push(curr.val); q.push(curr.left); q.push(curr.right); }
+        else { res.push(null); }
+    }
+    while (res.length > 0 && res[res.length - 1] === null) res.pop();
+    console.log(JSON.stringify(res));
+}
+
+const lines = require('fs').readFileSync(0,'utf8').split('\n');
 (function main() {
 ${parseStatements.join('\n')}
     const result = ${name}(${callArgs});
@@ -373,6 +587,10 @@ function generateJavaDriver(meta) {
       lines.push(`        String[] ${varName} = parseStringArray(raw${i});`);
     } else if (type === 'integer[][]') {
       lines.push(`        int[][] ${varName} = parseInt2DArray(raw${i});`);
+    } else if (type === 'listnode') {
+      lines.push(`        ListNode ${varName} = buildList(raw${i});`);
+    } else if (type === 'treenode') {
+      lines.push(`        TreeNode ${varName} = buildTree(raw${i});`);
     } else {
       lines.push(`        String ${varName} = raw${i};`);
     }
@@ -396,13 +614,104 @@ function generateJavaDriver(meta) {
     resultPrint = `        System.out.println(java.util.Arrays.toString(result));`;
   } else if (retType === 'integer[][]') {
     resultPrint = `        System.out.println(java.util.Arrays.deepToString(result).replace(", ", ","));`;
+  } else if (retType === 'listnode') {
+    resultPrint = `        printList(result);`;
+  } else if (retType === 'treenode') {
+    resultPrint = `        printTree(result);`;
   } else {
     resultPrint = `        System.out.println(result);`;
   }
 
   return `{{USER_CODE}}
 
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+    TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
+
 class Main {
+    static ListNode buildList(String s) {
+        int[] arr = parseIntArray(s);
+        if (arr.length == 0) return null;
+        ListNode head = new ListNode(arr[0]);
+        ListNode curr = head;
+        for (int i = 1; i < arr.length; i++) {
+            curr.next = new ListNode(arr[i]);
+            curr = curr.next;
+        }
+        return head;
+    }
+
+    static void printList(ListNode head) {
+        java.util.List<Integer> res = new java.util.ArrayList<>();
+        while (head != null) { res.add(head.val); head = head.next; }
+        System.out.println(res.toString().replace(" ", ""));
+    }
+
+    static String[] parseTreeArray(String s) {
+        s = s.trim().replaceAll("^\\\\[|\\\\]$", "").replaceAll("\\"", "");
+        if (s.isEmpty()) return new String[0];
+        return s.split(",");
+    }
+
+    static TreeNode buildTree(String s) {
+        String[] arr = parseTreeArray(s);
+        if (arr.length == 0 || arr[0].equals("null")) return null;
+        TreeNode root = new TreeNode(Integer.parseInt(arr[0].trim()));
+        java.util.Queue<TreeNode> q = new java.util.LinkedList<>();
+        q.offer(root);
+        int i = 1;
+        while (!q.isEmpty() && i < arr.length) {
+            TreeNode curr = q.poll();
+            if (i < arr.length && !arr[i].trim().equals("null")) {
+                curr.left = new TreeNode(Integer.parseInt(arr[i].trim()));
+                q.offer(curr.left);
+            }
+            i++;
+            if (i < arr.length && !arr[i].trim().equals("null")) {
+                curr.right = new TreeNode(Integer.parseInt(arr[i].trim()));
+                q.offer(curr.right);
+            }
+            i++;
+        }
+        return root;
+    }
+
+    static void printTree(TreeNode root) {
+        if (root == null) { System.out.println("[]"); return; }
+        java.util.List<String> res = new java.util.ArrayList<>();
+        java.util.Queue<TreeNode> q = new java.util.LinkedList<>();
+        q.offer(root);
+        while (!q.isEmpty()) {
+            TreeNode curr = q.poll();
+            if (curr != null) {
+                res.add(String.valueOf(curr.val));
+                q.offer(curr.left);
+                q.offer(curr.right);
+            } else {
+                res.add("null");
+            }
+        }
+        while (!res.isEmpty() && res.get(res.size() - 1).equals("null")) res.remove(res.size() - 1);
+        System.out.println("[" + String.join(",", res) + "]");
+    }
+
     static int[] parseIntArray(String s) {
         s = s.trim().replaceAll("[\\\\[\\\\]]", "");
         if (s.isEmpty()) return new int[0];
