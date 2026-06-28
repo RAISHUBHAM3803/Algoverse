@@ -13,6 +13,8 @@ const {
   logout,
   updateProfile,
   changePassword,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/authController");
 const { authenticate } = require("../middleware/authMiddleware");
 const { registerValidator, loginValidator } = require("../validators/authValidator");
@@ -46,6 +48,12 @@ router.post("/login", authRateLimiter, loginValidator, login);
 
 /** POST /api/v1/auth/refresh */
 router.post("/refresh", refresh);
+
+/** POST /api/v1/auth/forgot-password */
+router.post("/forgot-password", authRateLimiter, forgotPassword);
+
+/** POST /api/v1/auth/reset-password */
+router.post("/reset-password", authRateLimiter, resetPassword);
 
 // ============================================
 // PROTECTED ROUTES

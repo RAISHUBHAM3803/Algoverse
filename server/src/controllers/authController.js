@@ -215,6 +215,34 @@ const changePassword = asyncHandler(async (req, res) => {
   return sendSuccess(res, 200, "Password changed successfully");
 });
 
+/**
+ * POST /api/v1/auth/forgot-password
+ * Sends a password reset link to the user's email.
+ */
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) throw new AppError("Email is required", 400);
+  // Always returns 200 to prevent email enumeration attacks
+  await authService.forgotPassword(email);
+  return sendSuccess(res, 200, "If that email exists, a reset link has been sent.");
+});
+
+/**
+ * POST /api/v1/auth/reset-password
+ * Validates the token and sets a new password.
+ */
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) {
+    throw new AppError("Token and new password are required", 400);
+  }
+  if (newPassword.length < 8) {
+    throw new AppError("Password must be at least 8 characters", 400);
+  }
+  await authService.resetPassword(token, newPassword);
+  return sendSuccess(res, 200, "Password reset successfully. Please log in with your new password.");
+});
+
 module.exports = {
   register,
   login,
@@ -223,4 +251,6 @@ module.exports = {
   logout,
   updateProfile,
   changePassword,
+  forgotPassword,
+  resetPassword,
 };

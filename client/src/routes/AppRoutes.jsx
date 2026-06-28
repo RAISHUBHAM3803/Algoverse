@@ -11,6 +11,8 @@ import NotFound from "../pages/NotFound";
 // Lazy — loaded only when needed
 const Login            = lazy(() => import("../pages/Login"));
 const Register         = lazy(() => import("../pages/Register"));
+const ForgotPassword   = lazy(() => import("../pages/ForgotPassword"));
+const ResetPassword    = lazy(() => import("../pages/ResetPassword"));
 const Leaderboard      = lazy(() => import("../pages/Leaderboard"));
 const Dashboard        = lazy(() => import("../pages/Dashboard"));
 const Problems         = lazy(() => import("../pages/Problems"));
@@ -29,6 +31,8 @@ const AppRoutes = () => {
         <Route path="/leaderboard" element={<Suspense fallback={<Loader fullScreen />}><Leaderboard /></Suspense>} />
         <Route path="/login"       element={<Suspense fallback={<Loader fullScreen />}><Login /></Suspense>} />
         <Route path="/register"    element={<Suspense fallback={<Loader fullScreen />}><Register /></Suspense>} />
+        <Route path="/forgot-password" element={<Suspense fallback={<Loader fullScreen />}><ForgotPassword /></Suspense>} />
+        <Route path="/reset-password"  element={<Suspense fallback={<Loader fullScreen />}><ResetPassword /></Suspense>} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>

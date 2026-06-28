@@ -4,9 +4,11 @@
  */
 
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 const User = require("../models/User");
 const AppError = require("../utils/AppError");
 const config = require("../config");
+const { sendPasswordResetEmail } = require("../utils/emailService");
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -195,6 +197,65 @@ class AuthService {
     }
 
     user.password = newPassword;
+    await user.save();
+  }
+
+  /**
+   * Forgot Password — generates a reset token and emails it.
+   * Uses crypto random bytes for a secure, unguessable token.
+   */
+  async forgotPassword(email) {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      // Don't reveal whether email exists — always respond positively
+      return;
+    }
+
+    // Generate a secure random token
+    const plainToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(plainToken).digest("hex");
+
+    // Store hashed token with 1-hour expiry
+    user.resetPasswordToken  = hashedToken;
+    user.resetPasswordExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save({ validateBeforeSave: false });
+
+    // Send email with the PLAIN token (never store plain token in DB)
+    try {
+      await sendPasswordResetEmail(user.email, plainToken, user.name);
+    } catch (err) {
+      // If email fails, clear the token so user can try again
+      user.resetPasswordToken  = undefined;
+      user.resetPasswordExpiry = undefined;
+      await user.save({ validateBeforeSave: false });
+      throw new AppError("Failed to send reset email. Please try again later.", 500);
+    }
+  }
+
+  /**
+   * Reset Password — validates the token and sets a new password.
+   */
+  async resetPassword(token, newPassword) {
+    // Hash the incoming token to compare with stored hash
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken:  hashedToken,
+      resetPasswordExpiry: { $gt: new Date() }, // Token must not be expired
+    }).select("+resetPasswordToken +resetPasswordExpiry");
+
+    if (!user) {
+      throw new AppError("Invalid or expired reset token. Please request a new one.", 400);
+    }
+
+    // Set new password and clear the reset token
+    user.password            = newPassword;
+    user.resetPasswordToken  = undefined;
+    user.resetPasswordExpiry = undefined;
+
+    // Invalidate all existing sessions for security
+    user.refreshTokens = [];
+
     await user.save();
   }
 }
