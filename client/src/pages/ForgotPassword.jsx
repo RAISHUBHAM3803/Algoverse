@@ -100,7 +100,7 @@ const ForgotPassword = () => {
                 We've sent a password reset link to <strong className="text-white">{email}</strong>.
                 The link expires in <strong className="text-primary-400">1 hour</strong>.
               </p>
-              <p className="text-text-muted text-xs">
+              <p className="text-text-muted text-xs mb-8">
                 Didn't receive it?{" "}
                 <button
                   onClick={() => setSent(false)}
@@ -109,6 +109,13 @@ const ForgotPassword = () => {
                   Try again
                 </button>
               </p>
+
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3 rounded-xl transition-all duration-300"
+              >
+                Return to Sign In
+              </Link>
             </motion.div>
           )}
         </div>
