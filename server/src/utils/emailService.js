@@ -5,21 +5,26 @@
 
 const nodemailer = require('nodemailer');
 
-// Create Gmail transporter using App Password
+// Create transporter using generic SMTP (defaults to Gmail for backwards compatibility)
 const createTransporter = () => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error("Missing Gmail environment variables. Please check your .env file.");
+  // Use explicit SMTP settings if provided, otherwise fallback to Gmail defaults
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465;
+  const secure = process.env.SMTP_SECURE === 'false' ? false : true;
+  
+  const user = process.env.SMTP_USER || process.env.GMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+
+  if (!user || !pass) {
+    console.error("Missing Email environment variables. Please check your .env file or Render dashboard.");
   }
   
   return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL/TLS
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-    connectionTimeout: 5000, // Fail fast if can't connect (5 seconds)
+    host,
+    port,
+    secure, 
+    auth: { user, pass },
+    connectionTimeout: 5000, 
     greetingTimeout: 5000,
     socketTimeout: 10000,
   });
