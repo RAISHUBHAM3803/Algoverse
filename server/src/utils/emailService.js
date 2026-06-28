@@ -39,10 +39,12 @@ const createTransporter = () => {
 const sendPasswordResetEmail = async (toEmail, resetToken, userName) => {
   const transporter = createTransporter();
 
+  const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_USER || process.env.GMAIL_USER;
+
   const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
 
   const mailOptions = {
-    from: `"AlgoVerse" <${process.env.GMAIL_USER}>`,
+    from: `"AlgoVerse" <${fromEmail}>`,
     to: toEmail,
     subject: '🔐 Reset Your AlgoVerse Password',
     html: `
