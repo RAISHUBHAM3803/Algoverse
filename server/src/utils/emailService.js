@@ -41,6 +41,13 @@ const sendPasswordResetEmail = async (toEmail, resetToken, userName) => {
   const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_USER || process.env.GMAIL_USER;
 
   const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+  
+  // FINAL YEAR PROJECT DEMO SAFETY NET:
+  // Log the URL to the server console so you can manually copy it if the email fails!
+  console.log(`\n======================================================`);
+  console.log(`🔔 DEMO FALLBACK: Reset Link Generated!`);
+  console.log(`👉 ${resetUrl}`);
+  console.log(`======================================================\n`);
 
   const mailOptions = {
     from: `"AlgoVerse" <${fromEmail}>`,
