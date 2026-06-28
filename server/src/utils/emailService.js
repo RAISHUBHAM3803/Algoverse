@@ -7,12 +7,19 @@ const nodemailer = require('nodemailer');
 
 // Create Gmail transporter using App Password
 const createTransporter = () => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error("Missing Gmail environment variables. Please check your .env file.");
+  }
+  
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_APP_PASSWORD,
     },
+    connectionTimeout: 5000, // Fail fast if can't connect (5 seconds)
+    greetingTimeout: 5000,
+    socketTimeout: 10000,
   });
 };
 

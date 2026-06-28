@@ -224,6 +224,7 @@ class AuthService {
     try {
       await sendPasswordResetEmail(user.email, plainToken, user.name);
     } catch (err) {
+      console.error("❌ Email send error:", err);
       // If email fails, clear the token so user can try again
       user.resetPasswordToken  = undefined;
       user.resetPasswordExpiry = undefined;
