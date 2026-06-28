@@ -41,6 +41,20 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-semibold tracking-tight;
   }
+
+  /* ─── Fix browser autofill white background on dark inputs ─── */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    /* Use a box-shadow trick to force a dark background — the only reliable cross-browser method */
+    -webkit-box-shadow: 0 0 0px 1000px #1a1f2e inset !important;
+    box-shadow: 0 0 0px 1000px #1a1f2e inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
 }
 
 @layer utilities {
