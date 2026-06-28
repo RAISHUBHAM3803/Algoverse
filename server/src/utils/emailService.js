@@ -7,10 +7,9 @@ const nodemailer = require('nodemailer');
 
 // Create transporter using generic SMTP (defaults to Gmail for backwards compatibility)
 const createTransporter = () => {
-  // Use explicit SMTP settings if provided, otherwise fallback to Gmail defaults
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465;
-  const secure = process.env.SMTP_SECURE === 'false' ? false : true;
+  const secure = port === 465; // Automatically use true for 465, false (STARTTLS) for 587
   
   const user = process.env.SMTP_USER || process.env.GMAIL_USER;
   const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
