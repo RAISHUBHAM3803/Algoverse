@@ -13,10 +13,10 @@ services:
     environment:
       - PORT=5000
       - NODE_ENV=production
-      - MONGO_URI=mongodb+srv://shubhamrai3803:Shubhamrai1@codingadda.eiztujn.mongodb.net/Leetcode
-      - JWT_SECRET=5c32a99e3bdd9e51dcc02974e0deb563486e61af96509f66bde56d9fb6ed983a
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRE=15m
-      - JWT_REFRESH_SECRET=7d8f2c1a4b9e6f3d5a2c8b0e1f4d7a9c2b5e8f1d4a7c0b3e6f9d2a5c8b1e4f7
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - JWT_REFRESH_EXPIRE=7d
       - CLIENT_URL=http://localhost:3000
       - PISTON_URL=http://piston:2000
